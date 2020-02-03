@@ -1,7 +1,7 @@
 ### Final Year Project - SEECS, NUST 
 
 #### Group Members
-Muhammad Junaid Khalid
+Muhammad Junaid Khalid (Project Lead)
 Muhammad Ahsan
 Ramsha Iftikhar
 
