@@ -42,5 +42,6 @@ padded = pad_sequences(seq, maxlen = MAX_SEQUENCE_LENGTH)
 pred = model.predict(padded)
 labels = ['basicneeds', 'loan', 'medical', 'misc', 'bills', 'education',
        'pets']
-print("\n\nPost #1", my_post)
-print(pred, labels[np.argmax(pred)])
+print("\n\nText Content: \n\n", my_post)
+print("\n\nClass probabilities: \n\n", pred)
+print("\n\n Predicted Class: ", labels[np.argmax(pred)])
