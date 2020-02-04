@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
-
 import pandas as pd
 import numpy as np
 import re
@@ -15,37 +10,47 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import matplotlib.pyplot as plt
-import cufflinks as cf
-
-# from google.colab import drive
-# drive.mount('/content/drive')
-
-# cd drive/'My Drive'/'Drive Files'/'Colab Notebooks'/'FYP'
-
-df = pd.read_csv('Raabta_dataset - donations.csv')
-# print(df.info())
-
-print(df.head())
-df = df[['Label', 'body']]
-df.Label.value_counts()
-df['Label'].unique()
-# !pip install cufflinks
-
-# cf.go_offline()
-# cf.set_config_file(offline=False, world_readable=True)
-# df['Label'].value_counts().sort_values(ascending=False).iplot(kind='bar', yTitle='Number of Complaints', title='Number complaints in each product')
-def print_plot(index):
-    example = df[df.index == index][['body', 'Label']].values[0]
-    if len(example) > 0:
-        print(example[0])
-        print('Label:', example[1])
-print_plot(10)
-
-print_plot(100)
-
 import nltk
 nltk.download('stopwords')
 
+# Constants 
+epochs = 18
+batch_size = 128
+
+### Preprocessing of Dataset
+
+df = pd.read_csv('RDS.csv')
+df = df[['Label', 'body']]
+
+df.replace({'Label': {'Basic needs': 'basicneeds', 
+                      'basic needs': 'basicneeds', 
+                      'Basic needs/medical?': 'basicneeds',
+                      'Basic Needs': 'basicneeds',
+                      'baaic needs': 'basicneeds',
+                      'loans': 'loan', 
+                      'Loans': 'loan', 
+                      'Loan': 'loan',
+                      'Misc': 'misc', 
+                      'MIsc': 'misc',
+                      'misc/education?':'misc',
+                      'Pets': 'pets', 
+                      'Animals': 'pets',
+                      'pets ':'pets',
+                      'Bills': 'bills',
+                      'bils':'bills',
+                      'Medical': 'medical',
+                      'Education': 'education'
+                      }}, inplace = True)
+
+df.dropna(inplace=True)
+# Saving preprocessed Dataset
+
+df.to_csv(r'RDS_processed.csv')
+
+# loading processed dataset
+df = pd.read_csv('RDS_processed.csv')
+
+# preprocessing
 df = df.reset_index(drop=True)
 REPLACE_BY_SPACE_RE = re.compile('[/(){}\[\]\|@,;]')
 BAD_SYMBOLS_RE = re.compile('[^0-9a-z #+_]')
@@ -67,9 +72,6 @@ def clean_text(text):
 df['body'] = df['body'].apply(clean_text)
 df['body'] = df['body'].str.replace('\d+', '')
 
-print_plot(10)
-print_plot(100)
-
 # The maximum number of words to be used. (most frequent)
 MAX_NB_WORDS = 50000
 # Max number of words in each complaint.
@@ -88,10 +90,12 @@ print('Shape of data tensor:', X.shape)
 Y = pd.get_dummies(df['Label']).values
 print('Shape of label tensor:', Y.shape)
 
+# split dataset into training and testing set
 X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size = 0.10, random_state = 42)
 print(X_train.shape,Y_train.shape)
 print(X_test.shape,Y_test.shape)
 
+# Model Design
 
 model = tf.keras.Sequential()
 model.add(tf.keras.layers.Embedding(MAX_NB_WORDS, EMBEDDING_DIM, input_length=X.shape[1]))
@@ -102,46 +106,16 @@ model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(500, dropout=0.1, r
 model.add(tf.keras.layers.Dense(7, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='Adam', metrics=['accuracy'])
 
-epochs = 18
-batch_size = 128
 
+# Training the model
 history = model.fit(X_train, Y_train, epochs=epochs, validation_split= 0.10, batch_size=batch_size) 
 
-
-# ##### Test Accuracy
-
+# Accuracy on Test Set
 accr = model.evaluate (X_test,Y_test)
 print('Test set\n  Loss: {:0.3f}\n  Accuracy: {:0.3f}'.format(accr[0],accr[1]))
 
-
-# ##### Train Accuracy
-
+# Accuracy on Train Set
 accr = model.evaluate (X_train, Y_train)
-print('Test set\n  Loss: {:0.3f}\n  Accuracy: {:0.3f}'.format(accr[0],accr[1]))
+print('Train set\n  Loss: {:0.3f}\n  Accuracy: {:0.3f}'.format(accr[0],accr[1]))
 
-plt.title('Loss')
-plt.plot(history.history['loss'], label='train')
-plt.plot(history.history['val_loss'], label='test')
-plt.legend()
-plt.show();
-
-
-plt.title('Accuracy')
-plt.plot(history.history['acc'], label='train')
-plt.plot(history.history['val_acc'], label='test')
-plt.legend()
-plt.show();
-
-
-new_request = ['I havent taken any classes since forever, and my university is lagging because of that']
-seq = tokenizer.texts_to_sequences(new_request)
-padded = pad_sequences(seq, maxlen=MAX_SEQUENCE_LENGTH)
-pred = model.predict(padded)
-labels = ['basicneeds', 'loan', 'medical', 'misc', 'bills', 'education',
-       'pets']
-print(pred, labels[np.argmax(pred)])
-
-model.save_weights('./checkpoints/my_checkpoint')
 model.save('init.md5')
-
-# model.load_weights('./checkpoints/my_checkpoint')
