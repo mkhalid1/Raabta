@@ -20,11 +20,11 @@ group_posts = []
 for post in get_posts(group= 1259852177422636, credentials= (), pages=1):
     group_posts.append(post)
 
-my_post = group_posts[2]['text']
-model = tf.keras.models.load_model('Model Design/init.md5')
+my_post = group_posts[4]['text']
+model = tf.keras.models.load_model('init_45.md5')
 
 # print(model.summary())
-df = pd.read_csv('Model Design/Raabta_dataset - donations.csv')
+df = pd.read_csv('Model Design/RDS_processed.csv')
 request = [my_post]
 
 # The maximum number of words to be used. (most frequent)

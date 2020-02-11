@@ -97,7 +97,7 @@ Y = pd.get_dummies(df['Label']).values
 print('Shape of label tensor:', Y.shape)
 
 # split dataset into training and testing set
-X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size = 0.10, random_state = 42)
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size = 0.20, random_state = 42)
 print(X_train.shape,Y_train.shape)
 print(X_test.shape,Y_test.shape)
 
@@ -114,7 +114,7 @@ model.compile(loss='categorical_crossentropy', optimizer='Adam', metrics=['accur
 
 
 # Training the model
-history = model.fit(X_train, Y_train, epochs=epochs, validation_split= 0.10, batch_size=batch_size) 
+history = model.fit(X_train, Y_train, epochs=epochs, validation_split= 0.20, batch_size=batch_size) 
 
 # Accuracy on Test Set
 accr = model.evaluate (X_test,Y_test)
